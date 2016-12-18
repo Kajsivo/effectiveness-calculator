@@ -27,14 +27,12 @@ public class EffectivenessController {
 
     @RequestMapping(value = "/calculate", method = RequestMethod.POST)
     public String getFinalFile(Model model,
-                               @RequestParam("globalFile") MultipartFile globalFile,
-                               @RequestParam("singleFile") MultipartFile singleFile) {
+                               @RequestParam("globalFile") MultipartFile globalFile) {
 
-        calculateService.calculateEffectiveness(globalFile, singleFile);
-
+        String result = calculateService.calculateEffectiveness(globalFile);
 
         model.addAttribute(
-                "link", globalFile.getOriginalFilename());
+                "link", result);
         return "getFinalFile";
     }
 }

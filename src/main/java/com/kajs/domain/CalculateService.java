@@ -4,6 +4,7 @@ import com.google.common.io.Files;
 import com.kajs.api.error.SheetNotFoundException;
 import com.kajs.api.error.WrongCellTypeException;
 import com.kajs.api.error.WrongExtensionException;
+import com.kajs.domain.model.DomainEffectiveness;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -13,8 +14,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
-import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 
@@ -24,26 +26,28 @@ import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_STRING;
 
 @Service
 public class CalculateService {
-    public String calculateEffectiveness(MultipartFile globalEffectivenes, MultipartFile singleEffectiveness){
+    public String calculateEffectiveness(MultipartFile globalEffectiveness){
+        validateFile(globalEffectiveness);
+        Optional<Sheet> firstGlobalSheet = Optional.ofNullable(prepareSheet(globalEffectiveness, 0));
 
-        validateFile(globalEffectivenes);
-        validateFile(singleEffectiveness);
-        Optional<Sheet> firstGlobalSheet = Optional.ofNullable(prepareSheet(globalEffectivenes, 0));
-        Optional<Sheet> firstSingleSheet = Optional.ofNullable(prepareSheet(singleEffectiveness, 0));
-
-        if(firstGlobalSheet.isPresent() && firstSingleSheet.isPresent()) {
+        if(firstGlobalSheet.isPresent() ) {
             Sheet globalSheet = firstGlobalSheet.get();
-            Sheet singleSheet = firstSingleSheet.get();
-
+            List<DomainEffectiveness> domainList = new ArrayList<>();
 
             globalSheet.rowIterator().forEachRemaining((row) -> {
-                String firstGlobalCell = getCell(row, 0);
-            });
+                DomainEffectiveness domainEffectiveness = new DomainEffectiveness();
+                domainEffectiveness.setDomain(getCell(row, 0));
+                domainEffectiveness.setAmount(getCell(row, 1));
+                domainEffectiveness.setMax(getCell(row, 2));
+                domainEffectiveness.setEffectiveness(getCell(row, 3));
+                domainEffectiveness.setFosterFather(getCell(row, 4));
 
+                domainList.add(domainEffectiveness);
+            });
+            return domainList.get(0).toString();
         } else {
             throw new SheetNotFoundException();
         }
-        return "";
     }
 
     private String getCell(Row row, int cellNumber) {
