@@ -35,5 +35,6 @@ dependencies {
 	compile 'pl.allegro.tech.boot:handlebars-spring-boot-starter:0.2.0'
 	compile group: 'org.apache.poi', name: 'poi', version: '3.14'
 	compile group: 'org.apache.poi', name: 'poi-ooxml', version: '3.14'
+	compile group: 'org.modelmapper', name: 'modelmapper', version: '0.7.4'
 
 }
