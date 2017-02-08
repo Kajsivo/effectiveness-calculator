@@ -11,6 +11,8 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
@@ -28,6 +30,7 @@ import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_STRING;
 
 @Component
 public class CalculateService {
+    private static final Logger logger = LoggerFactory.getLogger(CalculateService.class);
     private final DomainRepository domainRepository;
 
     @Autowired
@@ -36,10 +39,12 @@ public class CalculateService {
     }
 
     public String calculateEffectiveness(MultipartFile globalEffectiveness){
+        logger.info("Start processing file");
         validateFile(globalEffectiveness);
         Optional<Sheet> firstGlobalSheet = Optional.ofNullable(prepareSheet(globalEffectiveness, 0));
 
         if(firstGlobalSheet.isPresent() ) {
+            logger.info("Start processing first sheet");
             Sheet globalSheet = firstGlobalSheet.get();
             List<DomainEffectiveness> domainList = new ArrayList<>();
 
@@ -50,10 +55,8 @@ public class CalculateService {
                 domainEffectiveness.setMax(getCell(row, 2));
                 domainEffectiveness.setEffectiveness(getCell(row, 3));
                 domainEffectiveness.setKeeper(getCell(row, 4));
-
                 domainList.add(domainEffectiveness);
             });
-
             domainList.forEach(domainRepository::save);
             return domainList.get(0).toString();
         } else {
@@ -73,8 +76,11 @@ public class CalculateService {
                         return String.valueOf(cell.getNumericCellValue());
                     case CELL_TYPE_STRING:
                         return cell.getStringCellValue();
+                    default:
+                        return cell.getStringCellValue();
                 }
             } catch (Exception ignored) {
+                logger.info("exception during get cell number {}", cellNumber, ignored);
             }
         }
         throw new WrongCellTypeException();
@@ -98,7 +104,7 @@ public class CalculateService {
     private void validateFile(MultipartFile file) {
         List<String> availableExtensions = Arrays.asList("xls", "xlsx");
         String fileExtension = Files.getFileExtension(file.getOriginalFilename());
-        if(!availableExtensions.stream().anyMatch(ext -> ext.equals(fileExtension.toLowerCase()))) {
+        if(availableExtensions.stream().noneMatch(ext -> ext.equals(fileExtension.toLowerCase()))) {
             throw new WrongExtensionException();
         }
 
