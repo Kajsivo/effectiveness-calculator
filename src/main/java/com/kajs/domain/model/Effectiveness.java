@@ -6,6 +6,7 @@ public class Effectiveness {
     private String max;
     private String effectiveness;
     private String keeper;
+    private boolean debtor;
 
     public String getDomain() {
         return domain;
@@ -56,5 +57,13 @@ public class Effectiveness {
                 ", effectiveness='" + effectiveness + '\'' +
                 ", keeper='" + keeper + '\'' +
                 '}';
+    }
+
+    public boolean isDebtor() {
+        return debtor;
+    }
+
+    public void setDebtor(boolean debtor) {
+        this.debtor = debtor;
     }
 }
