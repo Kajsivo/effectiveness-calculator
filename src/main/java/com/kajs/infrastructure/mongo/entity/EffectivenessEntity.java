@@ -1,11 +1,26 @@
-package com.kajs.domain.model;
+package com.kajs.infrastructure.mongo.entity;
 
-public class DomainEffectiveness {
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+@Document(collection = "effectiveness")
+public class EffectivenessEntity {
+    @Id
+    private String id;
     private String domain;
     private String amount;
     private String max;
     private String effectiveness;
     private String keeper;
+    private boolean debtor;
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
 
     public String getDomain() {
         return domain;
@@ -47,14 +62,11 @@ public class DomainEffectiveness {
         this.keeper = keeper;
     }
 
-    @Override
-    public String toString() {
-        return "DomainEffectiveness{" +
-                "domain='" + domain + '\'' +
-                ", amount='" + amount + '\'' +
-                ", max='" + max + '\'' +
-                ", effectiveness='" + effectiveness + '\'' +
-                ", keeper='" + keeper + '\'' +
-                '}';
+    public boolean isDebtor() {
+        return debtor;
+    }
+
+    public void setDebtor(boolean debtor) {
+        this.debtor = debtor;
     }
 }

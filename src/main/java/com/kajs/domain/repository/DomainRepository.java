@@ -1,7 +1,7 @@
 package com.kajs.domain.repository;
 
-import com.kajs.domain.model.DomainEffectiveness;
+import com.kajs.domain.model.Domain;
 
 public interface DomainRepository {
-    DomainEffectiveness save(DomainEffectiveness domainEffectiveness);
+    void save(Domain domain);
 }

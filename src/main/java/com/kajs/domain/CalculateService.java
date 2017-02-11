@@ -4,8 +4,8 @@ import com.google.common.io.Files;
 import com.kajs.api.error.SheetNotFoundException;
 import com.kajs.api.error.WrongCellTypeException;
 import com.kajs.api.error.WrongExtensionException;
-import com.kajs.domain.model.DomainEffectiveness;
-import com.kajs.domain.repository.DomainRepository;
+import com.kajs.domain.model.Effectiveness;
+import com.kajs.domain.repository.EffectivenessRepository;
 import org.apache.poi.ss.usermodel.Cell;
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -15,7 +15,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
@@ -29,13 +28,13 @@ import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_NUMERIC;
 import static org.apache.poi.ss.usermodel.Cell.CELL_TYPE_STRING;
 
 @Component
-public class CalculateService {
+public class CalculateService extends ExcelFileService{
     private static final Logger logger = LoggerFactory.getLogger(CalculateService.class);
-    private final DomainRepository domainRepository;
+    private final EffectivenessRepository effectivenessRepository;
 
     @Autowired
-    public CalculateService(DomainRepository domainRepository) {
-        this.domainRepository = domainRepository;
+    public CalculateService(EffectivenessRepository effectivenessRepository) {
+        this.effectivenessRepository = effectivenessRepository;
     }
 
     public String calculateEffectiveness(MultipartFile globalEffectiveness){
@@ -46,67 +45,21 @@ public class CalculateService {
         if(firstGlobalSheet.isPresent() ) {
             logger.info("Start processing first sheet");
             Sheet globalSheet = firstGlobalSheet.get();
-            List<DomainEffectiveness> domainList = new ArrayList<>();
+            List<Effectiveness> domainList = new ArrayList<>();
 
             globalSheet.rowIterator().forEachRemaining((row) -> {
-                DomainEffectiveness domainEffectiveness = new DomainEffectiveness();
-                domainEffectiveness.setDomain(getCell(row, 0));
-                domainEffectiveness.setAmount(getCell(row, 1));
-                domainEffectiveness.setMax(getCell(row, 2));
-                domainEffectiveness.setEffectiveness(getCell(row, 3));
-                domainEffectiveness.setKeeper(getCell(row, 4));
-                domainList.add(domainEffectiveness);
+                Effectiveness effectiveness = new Effectiveness();
+                effectiveness.setDomain(getCell(row, 0));
+                effectiveness.setAmount(getCell(row, 1));
+                effectiveness.setMax(getCell(row, 2));
+                effectiveness.setEffectiveness(getCell(row, 3));
+                effectiveness.setKeeper(getCell(row, 4));
+                domainList.add(effectiveness);
             });
-            domainList.forEach(domainRepository::save);
+            domainList.forEach(effectivenessRepository::save);
             return domainList.get(0).toString();
         } else {
             throw new SheetNotFoundException();
         }
-    }
-
-    private String getCell(Row row, int cellNumber) {
-        Optional<Cell> optionalCell = Optional.ofNullable(row.getCell(cellNumber));
-        if(optionalCell.isPresent()) {
-            Cell cell = optionalCell.get();
-            try {
-                switch (cell.getCellType()) {
-                    case CELL_TYPE_NUMERIC:
-                        return String.valueOf(cell.getNumericCellValue());
-                    case CELL_TYPE_FORMULA:
-                        return String.valueOf(cell.getNumericCellValue());
-                    case CELL_TYPE_STRING:
-                        return cell.getStringCellValue();
-                    default:
-                        return cell.getStringCellValue();
-                }
-            } catch (Exception ignored) {
-                logger.info("exception during get cell number {}", cellNumber, ignored);
-            }
-        }
-        throw new WrongCellTypeException();
-    }
-
-    private Sheet prepareSheet(MultipartFile file, int sheetNumber) {
-
-        try{
-            InputStream inputStream = file.getInputStream();
-            Workbook workbook = WorkbookFactory.create(inputStream);
-            Sheet sheet = workbook.getSheetAt(sheetNumber);
-
-            sheet.removeRow(sheet.getRow(sheet.getFirstRowNum()));
-            return sheet;
-        } catch (Exception e){
-            return null;
-        }
-
-    }
-
-    private void validateFile(MultipartFile file) {
-        List<String> availableExtensions = Arrays.asList("xls", "xlsx");
-        String fileExtension = Files.getFileExtension(file.getOriginalFilename());
-        if(availableExtensions.stream().noneMatch(ext -> ext.equals(fileExtension.toLowerCase()))) {
-            throw new WrongExtensionException();
-        }
-
     }
 }

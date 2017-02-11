@@ -1,6 +1,6 @@
 package com.kajs.infrastructure.mongo.repository;
 
-import com.kajs.domain.model.DomainEffectiveness;
+import com.kajs.domain.model.Domain;
 import com.kajs.domain.repository.DomainRepository;
 import com.kajs.infrastructure.mongo.dao.MongoDomainDao;
 import com.kajs.infrastructure.mongo.entity.DomainEntity;
@@ -21,8 +21,7 @@ public class MongoDomainRepository implements DomainRepository {
     }
 
     @Override
-    public DomainEffectiveness save(DomainEffectiveness domainEffectiveness) {
-        DomainEntity entity = mongoDomainDao.save(modelMapper.map(domainEffectiveness, DomainEntity.class));
-        return modelMapper.map(entity, DomainEffectiveness.class);
+    public void save(Domain domain) {
+        mongoDomainDao.saveDomain(modelMapper.map(domain, DomainEntity.class));
     }
 }
